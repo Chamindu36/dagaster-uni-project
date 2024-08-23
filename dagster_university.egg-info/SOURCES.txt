@@ -12,6 +12,7 @@ dagster_university/assets/__init__.py
 dagster_university/assets/constants.py
 dagster_university/assets/metrics.py
 dagster_university/assets/trips.py
+dagster_university/assets/zones.py
 dagster_university/jobs/__init__.py
 dagster_university/partitions/__init__.py
 dagster_university/resources/__init__.py
