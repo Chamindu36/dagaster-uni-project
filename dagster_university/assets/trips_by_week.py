@@ -7,16 +7,14 @@ from dagster import asset
 import plotly.express as px
 import plotly.io as pio
 import geopandas as gpd
-import duckdb
-import os
+from dagster_duckdb import DuckDBResource
+
 
 
 @asset(
     deps=["taxi_trips"]
 )
-def trips_by_week() -> None:
-    conn = duckdb.connect(os.getenv("DUCKDB_DATABASE"))
-
+def trips_by_week(database: DuckDBResource) -> None:
     current_date = datetime.strptime("2024-06-01", constants.DATE_FORMAT)
     end_date = datetime.strptime("2024-07-01", constants.DATE_FORMAT)
 
@@ -31,7 +29,8 @@ def trips_by_week() -> None:
             where date_trunc('week', pickup_datetime) = date_trunc('week', '{current_date_str}'::date)
         """
 
-        data_for_week = conn.execute(query).fetch_df()
+        with database.get_connection() as conn:
+            data_for_week = conn.execute(query).fetch_df()
 
         aggregate = data_for_week.agg({
             "vendor_id": "count",

@@ -4,8 +4,7 @@ import plotly.express as px
 import plotly.io as pio
 import geopandas as gpd
 
-import duckdb
-import os
+from dagster_duckdb import DuckDBResource
 
 from . import constants
 
@@ -13,7 +12,7 @@ from . import constants
 @asset(
     deps=["taxi_trips", "taxi_zones"]
 )
-def manhattan_stats() -> None:
+def manhattan_stats(database: DuckDBResource) -> None:
     query = """
         select
             zones.zone,
@@ -26,8 +25,8 @@ def manhattan_stats() -> None:
         group by zone, borough, geometry
     """
 
-    conn = duckdb.connect(os.getenv("DUCKDB_DATABASE"))
-    trips_by_zone = conn.execute(query).fetch_df()
+    with database.get_connection() as conn:
+        trips_by_zone = conn.execute(query).fetch_df()
 
     trips_by_zone["geometry"] = gpd.GeoSeries.from_wkt(trips_by_zone["geometry"])
     trips_by_zone = gpd.GeoDataFrame(trips_by_zone)
